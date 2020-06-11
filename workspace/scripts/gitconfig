@@ -1,0 +1,45 @@
+[user]
+	name = Konstantin Vinogradov
+	email = k.vinogradov@yadro.com
+[credential]
+	helper = cache --timeout=3600
+[alias]
+	s = status
+	r = reset
+	rh = reset --hard
+	a  = !git add . && git status
+	au = !git add -u . && git status
+	aa = !git add . && git add -u . && git status
+	ac   = !git add . && git commit	
+	acm  = !git add . && git commit -m
+	c    = commit
+	ca   = commit --amend # Be careful with this one.
+	cm   = commit -m
+	uc   = !git reset --soft HEAD^ && git reset HEAD .
+	d    = diff
+	dc   = diff --cached
+	hide = update-index --assume-unchanged
+	unhide = update-index --no-assume-unchanged
+	rh   = reset HEAD
+	rha  = reset --hard
+	rhh  = reset --hard HEAD
+	rh   = reset HEAD
+	l    = log --graph --all --pretty=format:'%C(yellow)%h%C(cyan)%d%Creset %s %C(white)- %an, %ar%Creset'
+	lg   = log --color --graph --pretty=format:'%C(bold white)%h%Creset -%C(bold green)%d%Creset %s %C(bold green)(%cr)%Creset %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
+	ll   = log --stat --abbrev-commit
+	llg  = log --color --graph --pretty=format:'%C(bold white)%H %d%Creset%n%s%n%+b%C(bold blue)%an <%ae>%Creset %C(bold green)%cr (%ci)' --abbrev-commit
+	co   = checkout
+	com  = checkout master
+	cob  = checkout -b
+	cod  = checkout development
+	b    = branch
+	bd   = branch -D
+	p    = pull
+	po   = pull origin
+	pom  = pull origin master
+	pr   = pull --rebase
+	pro  = pull --rebase origin
+	prod = pull --rebase origin development
+	ps   = push
+	pu   = push -u
+	puo  = push -u origin

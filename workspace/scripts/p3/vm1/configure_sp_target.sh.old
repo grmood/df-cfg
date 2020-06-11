@@ -1,0 +1,14 @@
+set -x
+
+tt-cli pool create --name p1 --protection 8+2 --provision thick --size 1.62G --drive HDD_209.71MB
+sleep 10
+tt-cli resource create block --name r1 --pool p1 --size full_pool_size
+sleep 10
+tt-cli resource set port --name r1 --port p01
+tt-cli resource set port --name r1 --port p02
+sleep 5
+tt-cli host create --name iqn.2020-02.org.debian:01:c97f3165dd3 --type iscsi --port iqn.2020-02.org.debian:01:c97f3165dd3
+sleep 5
+tt-cli resource set access --name r1 --host iqn.2020-02.org.debian:01:c97f3165dd3
+
+set +x

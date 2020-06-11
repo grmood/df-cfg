@@ -1,0 +1,21 @@
+set -x
+
+tt-cli login --user admin --password ChangeMe
+tt-cli port set --name p01 --ip 1.1.1.1.102 --ip 1.1.1.1.101 --netmask 255.255.252.0 --gateway 172.17.136.1
+tt-cli port set --name p02 --ip 2.1.1.1.102 --ip 2.1.1.1.101 --netmask 255.255.252.0 --gateway 172.17.136.1
+
+# At this point you'll be kicked out of the SSH session and will have to
+# relogin via one of the data links.
+
+#tt-cli pool create --name p1 --protection 8+2 --provision thick --size 1.62G --drive HDD_209.71MB
+#sleep 10
+#tt-cli resource create block --name r1 --pool p1 --size full_pool_size
+#sleep 10
+#tt-cli resource set port --name r1 --port p01
+#tt-cli resource set port --name r1 --port p02
+#sleep 5
+#tt-cli host create --name <initiator> --type iscsi --port <initiator>
+#sleep 5
+#tt-cli resource set access --name r1 --host <initiator>
+
+set +x
