@@ -1,0 +1,1 @@
+../../suse-patch-init.sh
