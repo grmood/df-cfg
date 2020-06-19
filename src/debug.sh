@@ -55,5 +55,5 @@ function log() {
     };
 }
 
-alias lg="log"
-alias lgs="log_status"
+alias lg="log info"
+alias lgs="logstat"
