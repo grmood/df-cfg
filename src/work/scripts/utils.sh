@@ -1,37 +1,40 @@
-# Bash utils & helpers
+# ============================================
+# file:     utils.sh
+# project:  exedots
+# author:   Konstantin Vinogradov
+# email:    exescript@gmail.com
+#
+# Bash utilites, helpers and shortcuts
+#
+# ============================================
 
-function fsource()      { [ -f "$1" ] && . "$1" || echo "[ file doesn't exist: '$1' ]"; }
-
-fsource "$work/progress-bar.sh"
-fsource "$work/iscsi.utils.sh"
-
-export exit_from_ssh='[enter]~.'
 export ARG_MAX=$(getconf ARG_MAX)
 export CFG_ECHO_SEPLEN=32
 
 export dnsfile="/etc/resolvconf/resolv.conf.d/head"
 export devnull="/dev/null"
 
-function reinit()       { fsource ~/.bash_profile; }
+function reinit()       { include $exedir/exe.bashrc; }
 function addpath()      { export PATH=$(set_ifd "$1:$PATH" "$PATH"); }
 
 function squo()         { echo -ne "'$*'";  }
 function dquo()         { echo -n "\"$@\""; }
 
-function exec_noout()   { eval "$* >$devnull";              }
-function exec_noerr()   { eval "$* 2>$devnull;";            }
-function exec_quiet()   { eval "$* >$devnull 2>$devnull;";  }
+function x_noout()   { eval "$* >$devnull";              }
+function x_noerr()   { eval "$* 2>$devnull;";            }
+function x_quiet()   { eval "$* >$devnull 2>$devnull;";  }
 
-function exec_loop()    { while true; do eval "$*" || break; done; echo "Evaluation error: $?"; }
-function exec_repeat()  { eval 'for idx in $(seq 1 '"$2"'); do $1; done;';  }
+function x_loop()    { while true; do eval "$*" || break; done; echo "Evaluation error: $?"; }
+function x_repeat()  { eval 'for idx in $(seq 1 '"$2"'); do $1; done;';  }
 
-function exec_if()      { eval "$1 && $2 && return 0 || ($3 && return $?)";         }
-function exec_ifz()     { exec_if   "[ -z $(squo  $1) ]" "$2" "$3";  return "$?";   }
-function exec_ifnz()    { exec_if   "[ ! -z $(squo $1) ]" "$2" "$3"; return "$?";   }
-function exec_iff()     { exec_if   "[ -f $(squo $1)]" "$2" "$3";    return "$?";   }
-function exec_ifd()     { exec_if   "[ -d $(squo $1)]" "$2" "$3";    return "$?";   }
+function x_if()      { eval "$1 && $2 && return 0"; } # || ($3 && return $?)";  }
+function x_ifz()     { x_if "[ -z $(squo  $1) ]" "$2" "$3";  return "$?"; }
+function x_ifnz()    { x_if "[ ! -z $(squo $1) ]" "$2" "$3"; return "$?"; }
+function x_iff()     { x_if "[ -f $(squo $1)]" "$2" "$3";    return "$?"; }
+function x_ifd()     { x_if "[ -d $(squo $1)]" "$2" "$3";    return "$?"; }
+function x_ifnd()    { x_if "[ ! -d $(squo $1)]" "$2" "$3";   return "$?"; }
 
-function echo_if()      { exec_if "$1" "echo $2" "echo $3"; }
+function echo_if()      { x_if "$1" "echo $2" "echo $3"; }
 function echo_ifz()     { echo_if "[ -z $1 ]" "$2" "$3";    }
 function echo_ifnz()    { echo_if "[ ! -z $1 ]" "$2" "$3";  }
 function echo_iff()     { echo_if "[ -f $1 ]" "$2" "$3";    }
@@ -43,15 +46,14 @@ function set_ifnz()     { echo_ifnz "$1" "$2";      }
 function set_iff()      { echo_iff "$1" "$2" "$1";  }
 function set_ifd()      { echo_ifd "$1" "$2" "$1";  }
 
-function echo_repeat()  { exec_repeat "echo -ne $1" "$2"; }
-function echo_ret()     { echo_repeat "\r" "$1"; }
-function echo_tab()     { echo_repeat "\t" "$1"; }
-function echo_space()   { echo_repeat " " "$1"; }
-function echo_ln()      { echo_repeat "\n" "$1"; }
-function echo_sep()     { echo_repeat "-" "$CFG_ECHO_SEPLEN"; }
-function echo_del()     { echo_repeat "\b" "$1"; }
-
-function echo_delall()  { echo_del "$ARG_MAX"; }
+function echo_rep()  { x_repeat "echo -ne $1" "$2"; }
+function echo_ret()  { echo_rep "\r" "$1"; }
+function echo_tab()  { echo_rep "\t" "$1"; }
+function echo_spc()  { echo_rep " " "$1"; }
+function echo_ln()   { echo_rep "\n" "$1"; }
+function echo_sep()  { echo_rep "-" "$CFG_ECHO_SEPLEN"; }
+function echo_del()  { echo_rep "\b" "$1"; }
+function echo_adel() { echo_del "$ARG_MAX"; }
 
 function drop_caches()  { free && sync && echo 3 > /proc/sys/vm/drop_caches && free; }
 function findreplace()  { find . -name "$3" -type f | xargs perl -pi -e 's/$1/$2/g'; }
@@ -61,14 +63,14 @@ function cwd()          { echo $(cd "$(dirname "$0")" && pwd);  }
 function up()           { cd $(echo_repeat '../' "$1");         }
 
 function echo_iterate   { eval "$@"; [ "$?" -eq 0 ] && sleep 1 && echo_ret || (ret = 1 && echo "iter err" && return $ret); }
-function watchcmd()     { exec_loop "echo_iterate $@";          }
+function watchcmd()     { x_loop "echo_iterate $@";          }
 
 function wsize()    { watchcmd 'echo -ne $(sudo du -h -s -X '"$fexcludes $1"')';    }
 function wmem()     { watchcmd 'echo -ne $(cat /proc/meminfo | grep -i memfree)';   }
 function wuptime()  { watchcmd 'echo -ne "Uptime: $(uptime --pretty)"';             }
 
 # shell helpers
-function exec_on() {
+function x_on() {
     local cdopt ret
     local path=$(set_ifz "$2" "$(pwd)")
     local ecmd="eval"
@@ -82,15 +84,15 @@ function exec_on() {
         ;;
     "-q" | "--quiet")
         cdopt=">/dev/null 2>/dev/null"
-        ecmd="exec_quiet"
+        ecmd="x_quiet"
         ;;
     "-e" | "--no-out")
         cdopt=">/dev/null"
-        ecmd="exec_noout"
+        ecmd="x_noout"
         ;;
     "-o" | "--no-err")
         cdopt="2>/dev/null"
-        ecmd="exec_noerr"
+        ecmd="x_noerr"
         ;;
     "*")
         cdopt=""
@@ -131,16 +133,13 @@ function mkdate()       { date +"%Y_%m_%d_%I_%M_%S"; }
 function mkdatedir()    { mkdir "$(mkdate)"; }
 
 # Net shortcuts
-# VPN
-function vpn_up()   { exec_on "sudo ./connect.sh" "$vpn";   }
-function vpn_down() { sudo pkill openvpn; exec_on "./switch-nameserver.sh" "$vpn"; }
 function sniff()    { sudo lsof -Pan -i tcp -i udp; }
 
 function wzr()      { curl "http://wttr.in;";    }
 function wzr2day()  { curl "http://v2.wttr.in;"; }
 
 # SSH helpers
-function ssh_addr()     { LANG=C exec_loop "ssh $1; sleep 5;";  }
+function ssh_addr()     { LANG=C x_loop "ssh $1; sleep 5;";  }
 function ssh_dmesg()    { ssh_addr "$1" "dmesg -w"; }
 function ssh_forget()   { ssh-keygen -f "$HOME/.ssh/known_hosts" -R "$@"; }
 function ssh_setup() {
@@ -242,23 +241,23 @@ function lsusers() {
 }
 
 function service_up() {
-    exec_quiet "sudo service $1 start" &&
-    exec_quiet "sudo service $1d start";
-    exec_quiet "sudo systemctl start $1.service" &&
-    exec_quiet "sudo systemctl start $1" &&
-    exec_quiet "sudo systemctl start $1";
+    x_quiet "sudo service $1 start" &&
+    x_quiet "sudo service $1d start";
+    x_quiet "sudo systemctl start $1.service" &&
+    x_quiet "sudo systemctl start $1" &&
+    x_quiet "sudo systemctl start $1";
 }
 
 function service_down() {
-    exec_quiet "sudo systemctl stop $1.service";
-    exec_quiet "sudo systemctl stop $1";
-    exec_quiet "sudo service $1 stop ";
+    x_quiet "sudo systemctl stop $1.service";
+    x_quiet "sudo systemctl stop $1";
+    x_quiet "sudo service $1 stop ";
 }
 
 function service_disable() {
     service_down "$1";
-    exec_quiet "sudo systemctl disable $1.service" &&
-    exec_quiet "sudo systemctl disable $1"
+    x_quiet "sudo systemctl disable $1.service" &&
+    x_quiet "sudo systemctl disable $1"
 }
 
 function scsi_disable() {
@@ -267,14 +266,14 @@ function scsi_disable() {
     service_disable multipath
     service_disable multipathd
 
-    exec_quiet 'sudo modprobe -r -f iscsi_tcp'
-    exec_quiet 'sudo modprobe -r -f libiscsi_tcp'
-    exec_quiet 'sudo modprobe -r -f ib_iser'
-    exec_quiet 'sudo modprobe -r -f libiscsi'
-    exec_quiet 'sudo modprobe -r -f scsi_transport_iscsi'
-    exec_quiet 'sudo modprobe -r -f scsi_dh_emc'
-    exec_quiet 'sudo modprobe -r -f scsi_dh_rdac'
-    exec_quiet 'sudo modprobe -r -f scsi_dh_alua'
+    x_quiet 'sudo modprobe -r -f iscsi_tcp'
+    x_quiet 'sudo modprobe -r -f libiscsi_tcp'
+    x_quiet 'sudo modprobe -r -f ib_iser'
+    x_quiet 'sudo modprobe -r -f libiscsi'
+    x_quiet 'sudo modprobe -r -f scsi_transport_iscsi'
+    x_quiet 'sudo modprobe -r -f scsi_dh_emc'
+    x_quiet 'sudo modprobe -r -f scsi_dh_rdac'
+    x_quiet 'sudo modprobe -r -f scsi_dh_alua'
 }
 
 # Kernel helpers
@@ -323,12 +322,6 @@ alias mnt='mount | column -t'
 alias mo='mount'
 alias um='unmount'
 
-alias p3klog="ssh_dmesg $p3ip"
-alias p3vmklog="ssh_dmesg $p3vm1"
-alias sp1klog="ssh_dmesg $sp1host"
-alias sp2klog="ssh_dmesg $sp2host"
-alias bmclog="ssh_dmesg $bmchost"
-
 alias sai="sudo apt install"
 alias sai="sudo apt-get install"
 alias sau="sudo apt update"
@@ -350,9 +343,9 @@ alias cdclip='cd $(xclip -o)'
 
 alias RM="sudo rm -rf"
 
-alias noout="exec_nout"
-alias noerr="exec_noerr"
-alias quiet="exec_quiet"
+alias noout="x_nout"
+alias noerr="x_noerr"
+alias quiet="x_quiet"
 
 alias h='history | tail -10'
 alias hi='history'
@@ -368,6 +361,3 @@ alias sechon="sudo echo -n"
 alias sechoe="sudo echo -e"
 alias sechone="sudo echo -ne"
 alias sechoen="sudo echo -en"
-
-addpath "$HOME/.emacs.d/bin"
-addpath "$HOME/.cask/bin"

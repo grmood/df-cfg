@@ -1,4 +1,5 @@
 export exedir="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)";
+
 export execfg="$exedir/cfg"
 export exesrc="$exedir/src"
 

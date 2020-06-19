@@ -1,1 +1,0 @@
-../../configure_init_iscsi_multipath.sh

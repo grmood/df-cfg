@@ -20,7 +20,11 @@ function logi()     { echotag "*" $@;   }   #info
 function logo()     { echotag "+" $@;   }   #ok (status)
 function logf()     { echotag "-" $@;   }   #fail (for logstatus)
 function logh()     { echotag "#" $@;   }   #hash (for logdbg)
-function loga()     { echotag "=>" $@;  }   #arrow (list item)
+function loga()     { echotag "->" $@;  }   #arrow (list item)
+
+function logdbg() {
+    [ -z "$EXE_DBG" ] || logh $@;
+}
 
 function logstat() {
     (( ! "$?" )) && {
@@ -30,10 +34,6 @@ function logstat() {
     [ ! -z "$@" ] && {
         echo ": { $@ }"
     } ||echo;
-}
-
-function logdbg() {
-    [ -z "$EXE_DBG" ] || logh $@;
 }
 
 function log() {
@@ -56,4 +56,4 @@ function log() {
 }
 
 alias lg="log"
-alias lgs="log_status"
+alias lgs="logstat"

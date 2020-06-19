@@ -1,1 +1,0 @@
-../../rsync_all.sh

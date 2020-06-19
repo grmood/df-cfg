@@ -1,5 +1,5 @@
 # ============================================
-# file:     debug.sh
+# file:     work.sh
 # project:  exedots
 # author:   Konstantin Vinogradov
 # email:    exescript@gmail.com
@@ -7,18 +7,16 @@
 # ============================================
 
 cdir="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"
-fenv="$cdir/work/env.sh"
-futils="$cdir/work/utils.sh"
+export fenv="$cdir/work/env.sh"
+export futils="$cdir/work/utils.sh"
 
 include "$fenv"
 include "$futils"
 
-export work="/home/exe/workspace"
+export work="$HOME/workspace"
 export docs="$work/docs"
-
-export scripts="$cdir/work/scripts"
-export vpn="$cdir/work/scripts/vpn"
-export src="$cdir/work/scripts/src"
-
-
+export scripts="$work/scripts"
+export src="$work/scripts/src"
+export build=$work/build
+	
 

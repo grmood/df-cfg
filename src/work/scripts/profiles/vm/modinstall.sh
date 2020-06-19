@@ -1,1 +1,0 @@
-../../modinstall.sh
