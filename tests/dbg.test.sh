@@ -2,9 +2,10 @@
 
 source "../exe.bashrc"
 
-types=(info status ok fail warn err dbg item)
+types=(info status ok fail warn err dbg list item)
 
 for t in "${types[@]}"
 do
-    EXE_DBG=y log $t "logging '$t' message";
+	echo "Test type: $t" 
+    EXE_DBG=y log $t "'$t' message";
 done;
