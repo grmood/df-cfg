@@ -34,6 +34,8 @@ function logstat() {
     } ||echo;
 }
 
+export _exe_dbg_levels=( info warn err dbg ok fail list item status )
+
 function log() {
     local ret="$?"
     local type="$1"; shift;
