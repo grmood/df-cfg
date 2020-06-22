@@ -1,35 +1,33 @@
 _cdir() { echo "$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"; }
 
-export exedir="$(_cdir)";
-export execfg="$exedir/cfg"
-export exesrc="$exedir/src"
+export _exe_path="$(_cdir)";
+export _exe_cfg_path="$_exe_path/cfg"
+export _exe_src_path="$_exe_path/src"
+export _exe_rc_name="exe.bashrc"
+export _exe_user_rc_path="$_exe_src_path/rc.d"
+
+core_mods=( utils work )
+user_mods=(  )
 
 # uncomment line to enable
 # log 'dbg' message type printing
 # export EXE_DBG=y
 
-function var_get()   { eval "echo \$$1"; }
-function var_set()   { eval "export $1=$2"; }
-
-function var_sety()  { var_set "$1" "y"; }
-function var_setn()  { var_set "$1" "n"; }
-function var_unset() { var_set "$1" ""; }
+source "$_exe_src_path/debug.sh"
+source "$_exe_src_path/shell.sh"
 
 function file2tag() {
     local fname=$(basename $1)
     echo "_$(echo $fname | tr a-z A-Z | tr [:punct:] '_' | tr -d [:cntrl:])_";
 }
 
-source "$exesrc/debug.sh"
-source "$exesrc/shell.sh"
-
 function module_include() {
     local modname="$1"
-    local modfile="$exesrc/$1.sh"
+    local modfile="$_exe_src_path/$1.sh"
     local modfunc="$1_include"
 
     export _exe_mod_name="$modname"
-    export _exe_mod_path="$exesrc/$1"
+    export _exe_mod_path="$_exe_src_path/$1"
 
     [ -z "$1" ] && return 1 || shift;
     [ -f "$modfile" ] || return 1;
@@ -39,18 +37,23 @@ function module_include() {
     var_sety "$(file2tag $modname)"
 }
 
+function module_include_safe {
+    var_unset "$(file2tag $_exe_src_path/$1.sh)"
+    module_include "$1"
+}
+
 function module_exclude() {
     local modname="$1"
-    local modfile="$exesrc/$1.sh"
+    local modfile="$_exe_src_path/$1.sh"
     local modfunc="$1_exclude"
 
     export _exe_mod_name="$modname"
-    export _exe_mod_path="$exesrc/$1"
+    export _exe_mod_path="$_exe_src_path/$1"
 
     [ -z "$1" ] && return 1 || shift;
     eval "x_quiet $modfunc $@" || return 1;
 
-    var_unset "$(file2tag $modfile)"
+    var_unset "$(file2tag $modname)"
 }
 
 function module_reinclude() {
@@ -60,43 +63,57 @@ function module_reinclude() {
     mofule_include "$modname"
 }
 
-function exclude_all() {
+function mods_deinit() {
     module_exclude "utils"
     module_exclude "work"
 
-    exclude "$exesrc/.private.sh"
-    exclude "$exedir/rc.d"
+    exclude "$_exe_src_path/.private.sh"
+    exclude "$_exe_user_rc_path"
 }
 
-function include_all() {
-    # include main modules
-    module_include "utils"
-    module_include "work"
+function core_init() {
+    for m in "${core_mods[@]}"; do
+        var_unset "$(file2tag ${m}.sh)";
+        module_include "$m";
+    done
+}
 
+function core_deinit() {
+    for m in "${core_mods[@]}"; do
+        module_exclude "$m";
+    done
+}
+
+function user_init() {
     # include user modules
-    include "$exedir/rc.d"
-    include "$exesrc/.private.sh"
+    include_safe "${_exe_src_path}/rc.d"
+    include_safe "${_exe_src_path}/.private.sh"
+
+    for m in "${user_mods[@]}"; do
+        var_unset "$(file2tag ${m}.sh)";
+        module_include "$m";
+    done;
 }
 
-exclude_all;
-include_all;
+function user_deinit() {
+    for m in "${user_mods[@]}"; do
+        module_exclude "$m";
+    done;
 
-dbg "Workspace user directory: '$work'"
-[ -d $work ] || {
-    dbg "Workspace directory doesn't exist"
-    dbg "Create workspace directory : '$work'"
-
-    xquiet "mkdir $work" ||
-        fatal "1" "make workspace failed: '$work'";
+    exclude "$_exe_src_path/.private.sh"
+    exclude "$_exe_user_rc_path"
 }
 
-wdirs=( build logs tmp src bin )
-for d in "${wdirs[@]}"; do
-    [ ! -d $work/$d ] && {
-        logi "Make workspace subdirectory: '$d' ";
-        ( ! mkdir $work/$d ) && logf || logo;
-    } || dbg "exedots: workspace subdirectory '$work/$d' already exists";
-done
+function exe_init() {
+    core_init;
+    user_init;
+}
 
+function exe_deinit() {
+    user_deinit;
+    core_deinit;
+}
+
+exe_init
 
 

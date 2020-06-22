@@ -2,7 +2,7 @@
 
 include_safe "$_exe_mod_path/utils.log.sh"
 
-function reexe()  { include $exedir/exe.bashrc; }
+function reexe()  { include ${_exe_path}/${_exe_rc_name}; }
 function rebash() { source $HOME/.bashrc; }
 function reinit() { rebash; reexe; }
 

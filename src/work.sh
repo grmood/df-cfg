@@ -9,13 +9,27 @@ _cdir() { echo "$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"; }
 
 export work="$HOME/workspace"
 
-export fenv="$(_cdir)/env.sh"
-export futils="$(_cdir)/utils.sh"
-
-# logi "[ work.sh ] cdir : $(_cdir)"
+export fenv="$work/env.sh"
+export futils="$work/utils.sh"
 
 function work_include() {
-	dbg "work: include"
+	dbg "Workspace user directory: '$work'"
+
+	[ -d $work ] || {
+	    dbg "Workspace directory doesn't exist"
+	    dbg "Create workspace directory : '$work'"
+
+	    xquiet "mkdir $work" ||
+	        fatal "1" "make workspace failed: '$work'";
+	}
+
+	
+	for d in "${work_dirs[@]}"; do
+	    [ ! -d $work/$d ] && {
+	        dbg "Make workspace subdirectory: '$d' ";
+	        ( ! mkdir $work/$d ) && logf || logo;
+	    } || dbg "exedots: workspace subdirectory '$work/$d' already exists";
+	done
 }
 
 function work_exclude() {

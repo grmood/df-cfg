@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source "../exe.bashrc"
+source "${_exe_path}/${_exe_rc_name}"
 
 types=(info status ok fail warn err dbg list item)
 

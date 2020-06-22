@@ -1,5 +1,12 @@
 export devnull="/dev/null"
 
+function var_get()   { eval "echo \$$1"; }
+function var_set()   { eval "export $1=$2"; }
+
+function var_sety()  { var_set "$1" "y"; }
+function var_setn()  { var_set "$1" "n"; }
+function var_unset() { var_set "$1" ""; }
+
 function xdbg() { eval "set -x; $1; set +x;"; }
 
 function xnoout() { eval "$* >$devnull";              }
@@ -131,7 +138,7 @@ function _include() {
     local tag=$(file2tag $1)
 
     [ ! -f "$1" ] && { loge "include: file doesn't exist: '$1'"; return; }
-    included "$1" && { logw "include: file already included: '$1'"; return; }
+    included "$1" && { dbg "include: file already included: '$1'"; return; }
 
     var_setn "$tag" && source "$1" && var_sety "$tag" || {
         loge "include: file contains errors [ '$1' ]";
@@ -156,11 +163,23 @@ function include() {
 }
 
 function include_safe() {
-	x_quiet "include $@"
+    [ -d "$1" ] && {
+        for f in $1/*; do
+            var_unset "$(file2tag $f)";
+        done
+    }
+
+	var_unset "$(file2tag $1)";
+
+    include "$1"
 }
 
 function _exclude() {
 	dbg "exclude: file [ '$1' ]"
+    [ ! -f "$1" ] || [ ! -d "$1" ] && {
+        dbg "exclude: no such file or dir: '$1'"
+    }
+
     local tag=$(file2tag $1);
     var_unset "$tag";
 }
