@@ -36,8 +36,8 @@ function xff()  { xf "[ -f $1 ]" "$2" "$3"; }
 function xfd()  { xf "[ -d $1 ]" "$2" "$3"; }
 function xfnd() { xf "[ ! -d $1 ]" "$2" "$3"; }
 
-function xfok()   { eval "( exit $?;) && $@"; }
-function xferr()  { eval "( exit $?;) || $@"; }
+function xfok()  { eval "( exit $?;) && $@"; }
+function xferr() { eval "( exit $?;) || $@"; }
 
 function ef()    { xf "$1" "echo $2" "echo $3"; }
 
@@ -49,19 +49,14 @@ function efd()   { ef "[ -d $1 ]" "$2" "$3"; }
 function efok()  { xfok  "$1"; }
 function eferr() { xferr "$1"; }
 
-function logf()   { xf "$1" "log info $2" "log info $3";  }
-
-function logfz()  { logf "[ -z $1 ]" "$2" "$3";   }
-function logfnz() { logf "[ ! -z $1 ]" "$2" "$3"; }
-function logff()  { logf "[ -f $1 ]" "$2" "$3";   }
-function logfd()  { logf "[ -d $1 ]" "$2" "$3";   }
-
-function logfok()  { xfok  "log $@"; }
-function logferr() { xferr "log $@"; }
+function dbgfz()  { xfz  "$1" "dbg $2"; }
+function dbgfnz() { xfnz "$1" "dbg $2"; }
+function dbgff()  { xff  "$1" "dbg $2"; }
+function dbgfd()  { xfd  "$1" "dbg $2"; }
 
 function setf()   { ef   "$1" "$2" "$1"; }
 function setfz()  { efz  "$1" "$2" "$1"; }
-function setfnz() { efnz "$1" "$2";      }
+function setfnz() { efnz "$1" "$2" "$1"; }
 function setff()  { eff  "$1" "$2" "$1"; }
 function setfd()  { efd  "$1" "$2" "$1"; }
 
@@ -128,13 +123,12 @@ function included() {
     local val=$(var_get "$tag");
 
     [ "$val" == "y" ] && return 0;
-    [ "$val" == "n" ] && { logw "partialy included: ( $1 )"; return 0; }
+    [ "$val" == "n" ] && { dbg "partialy included: ( $1 )"; return 0; }
 
     return 1;
 }
 
 function _include() {
-	dbg "include: file [ '$1' ]"
     local tag=$(file2tag $1)
 
     [ ! -f "$1" ] && { loge "include: file doesn't exist: '$1'"; return; }
@@ -176,7 +170,7 @@ function include_safe() {
 
 function _exclude() {
 	dbg "exclude: file [ '$1' ]"
-    [ ! -f "$1" ] || [ ! -d "$1" ] && {
+    [ ! -f "$1" ] && [ ! -d "$1" ] && {
         dbg "exclude: no such file or dir: '$1'"
     }
 
