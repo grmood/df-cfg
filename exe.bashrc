@@ -6,7 +6,7 @@ export _exe_src_path="$_exe_path/src"
 export _exe_rc_name="exe.bashrc"
 export _exe_user_rc_path="$_exe_src_path/rc.d"
 
-core_mods=( utils work )
+core_mods=( "utils" "work" )
 user_mods=(  )
 
 # uncomment line to enable
@@ -29,17 +29,22 @@ function module_include() {
     export _exe_mod_name="$modname"
     export _exe_mod_path="$_exe_src_path/$1"
 
-    [ -z "$1" ] && return 1 || shift;
+    shift;
+
+    [ -z "$modname" ] && return 1;
     [ -f "$modfile" ] || return 1;
 
-    include "$modfile" && eval "$modfunc $@" || return 1;
+    include_safe "$modfile";
 
-    var_sety "$(file2tag $modname)"
+    eval "$modfunc $@" || return 1;
+
+    var_sety "$(file2tag $modname)";
 }
 
 function module_include_safe {
-    var_unset "$(file2tag $_exe_src_path/$1.sh)"
-    module_include "$1"
+    var_unset "$(file2tag $1)"
+
+    module_include "$1" "$@"
 }
 
 function module_exclude() {
@@ -50,8 +55,10 @@ function module_exclude() {
     export _exe_mod_name="$modname"
     export _exe_mod_path="$_exe_src_path/$1"
 
-    [ -z "$1" ] && return 1 || shift;
-    eval "x_quiet $modfunc $@" || return 1;
+    [ -z "$modname" ] && return 1; shift;
+
+    eval "x_quiet $modfunc $@";
+    exclude "$modfile";
 
     var_unset "$(file2tag $modname)"
 }
@@ -60,7 +67,7 @@ function module_reinclude() {
     local modname="$1"
 
     module_exclude "$modname"
-    mofule_include "$modname"
+    module_include "$modname"
 }
 
 function mods_deinit() {
@@ -73,13 +80,16 @@ function mods_deinit() {
 
 function core_init() {
     for m in "${core_mods[@]}"; do
-        var_unset "$(file2tag ${m}.sh)";
+        var_unset "$(file2tag ${m})";
+
         module_include "$m";
     done
 }
 
 function core_deinit() {
     for m in "${core_mods[@]}"; do
+        var_unset "$(file2tag ${m})";
+
         module_exclude "$m";
     done
 }
@@ -90,13 +100,16 @@ function user_init() {
     include_safe "${_exe_src_path}/.private.sh"
 
     for m in "${user_mods[@]}"; do
-        var_unset "$(file2tag ${m}.sh)";
-        module_include "$m";
+        var_unset "$(file2tag ${m})";
+
+        module_include "${m}";
     done;
 }
 
 function user_deinit() {
     for m in "${user_mods[@]}"; do
+        var_unset "$(file2tag ${m})";
+
         module_exclude "$m";
     done;
 
@@ -114,6 +127,7 @@ function exe_deinit() {
     core_deinit;
 }
 
+# exe_deinit
 exe_init
 
 

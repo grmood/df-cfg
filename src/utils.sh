@@ -21,6 +21,8 @@ utils=(
     shell kernel os net
 )
 
+dbg "utils: ${utils[*]}"
+
 function utils_exclude() {
     for u in "${utils[@]}"; do
         exclude "${_exe_mod_path}/utils.${u}.sh";
@@ -31,8 +33,7 @@ function utils_exclude() {
 
 function utils_include() {
     for u in "${utils[@]}"; do
-        var_unset "$(file2tag ${_exe_mod_path}/utils.${u}.sh)";
-        include "${_exe_mod_path}/utils.${u}.sh";
+        include_safe "${_exe_mod_path}/utils.${u}.sh";
     done;
 
     include_safe "${_exe_mod_path}/aliases.sh";
