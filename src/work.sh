@@ -1,24 +1,30 @@
 # ============================================
-# file:     debug.sh
-# project:  exedots
-# author:   Konstantin Vinogradov
-# email:    exescript@gmail.com
+# Module: work
+# 
+# Workspace environment functionality
 #
 # ============================================
 
-cdir="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"
-fenv="$cdir/work/env.sh"
-futils="$cdir/work/utils.sh"
+_cdir() { echo "$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"; }
 
-include "$fenv"
-include "$futils"
+export work="$HOME/workspace"
 
-export work="/home/exe/workspace"
+export fenv="$(_cdir)/env.sh"
+export futils="$(_cdir)/utils.sh"
+
+# logi "[ work.sh ] cdir : $(_cdir)"
+
+function work_include() {
+	dbg "work: include"
+}
+
+function work_exclude() {
+	dbg "work: exclude"
+}
+
 export docs="$work/docs"
-
-export scripts="$cdir/work/scripts"
-export vpn="$cdir/work/scripts/vpn"
-export src="$cdir/work/scripts/src"
-
-
+export scripts="$work/scripts"
+export src="$work/scripts/src"
+export build=$work/build
+	
 
